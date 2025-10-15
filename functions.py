@@ -91,8 +91,35 @@ def algo_glouton(G):
 
 
 
+def branching(G):
+    C = [] # le resultat
+    pile = [(-1, G.copy(), [])] # le pile
+    if len(G.edges()) == 0:
+        return []
+    while pile != []:
+        courant = pile.pop()
+        (_, Hc, solc) = courant
+        if len(Hc.edges()) == 0:
+            if C == []:
+                C = solc.copy()
+            else:
+                if len(C) > len(solc):
+                    C = solc.copy()
+        else:
+            arete = list(Hc.edges())[0]
+            u, v = arete
+            pile.append((u, remove_node_copy(Hc, u), solc + [u]))
+            pile.append((v, remove_node_copy(Hc, v), solc + [v]))
+                
+    return C
+
+
 if __name__ == "__main__":
     H = parseTxt("exemple.txt")
+    print(dir(H))
+    print(H.nodes)
+    print(len(H.nodes()))
+    print(H.size())
     print_graph(H)
     plot_graph(H, title="exemple")
     print("degree map:", degree_map(H))
@@ -102,5 +129,11 @@ if __name__ == "__main__":
     
     G = random_graph(10, 0.3)
     plot_graph(G, title="random")
+    
+    C = branching(H)
+    print("branching: ", C)
+    
 
     input("'Enter' pour fermer les graphes...")
+
+
