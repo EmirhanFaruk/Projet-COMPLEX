@@ -48,6 +48,12 @@ def remove_node_copy(G, n):
     H.remove_node(n)
     return H
 
+def remove_node_list_copy(G, l):
+    H = G.copy()
+    for n in l :
+        H.remove_node(n)
+    return H
+
 def degree_map(G) :
     return dict(G.degree())
 
@@ -75,10 +81,6 @@ def algo_couplage(G):
             C.add(edge[0])
             C.add(edge[1])
     return C
-#NOTE: l'énoncé est pas clair,
-# je sais pas si c'est ça qu'il veut, ça dit "sortie: une couverture"
-# mais au dessus: "un couplage est un ensemble d'arretes",
-# on verra bien dans la suite si ça marche pas.
 
 def algo_glouton(G):
     C = set()
