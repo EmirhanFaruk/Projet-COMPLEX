@@ -1,5 +1,7 @@
-from functions import random_graph, branching
+from functions import random_graph
 from calctemps import get_time, get_calctime
+
+from functions import branching, algo_couplage, algo_glouton
 
 
 def makeTestGraphBySize(m, n, p, increment):
@@ -25,82 +27,63 @@ def makeStressTestGraphBySize(m, n, increment):
     
     return graphs
 
-
-
-def makeTestGraphs():
-    """
-    Make 3 graphs with the size 10, 20 and 40.
-    First list have 0.2 p, second 0.5 and third 0.8.
-    """
-    graphs = [[], [], []]  # Easy, Medium, Hard
-    index = 0
-    for i in range(2, 9, 3):
-        gl = 10
-        for _ in range(3):
-            graphs[index].append([random_graph(gl, i * 0.1)])
-            gl *= 2
-        index += 1
-    
-    return graphs
-
-
 def testSection(algo, graphs):
     results = []
     print(f"Starting the test for algorithm {algo.__name__}...")
     for G in graphs:
-        for g in G:
-            print(f"Testing graph with {len(g.nodes())} nodes and {len(g.edges())} edges...")
-            t = get_time()
-            algo(g)
-            f = get_calctime(t)
-            results.append((len(g.nodes()), len(g.edges()), f))
+        print(f"Testing graph with {len(G.nodes())} nodes and {len(G.edges())} edges...")
+        t = get_time()
+        res = algo(G)
+        f = get_calctime(t)
+        results.append((len(G.nodes()), len(G.edges()), f, res))
+        print(f"Finished in {f} seconds.")
     return results
 
-def stressTest(algo1, algo2=None, m=10, n=50, increment=10):
+def stressTest(algos, m=5, n=20, increment=5):
     graphs = makeStressTestGraphBySize(m, n, increment)
     
-    algos = [algo1, algo2]
     sections = [("Easy", 0.2), ("Medium", 0.5), ("Hard", 0.8)]
-    # For algo 1 and algo 2.
-    results = [[[], [], []], [[], [], []]] 
+    # For algos. Each list inside will have 3 lists for each section
+    results = [[f"{x.__name__}"] for x in algos]
     print(f"Each section have graphs having size ranging from {m} to {n}, with the size increment of {increment}, which makes {(n - m) // increment} graphs...")
-    for algo in algos:
+    for algonum, algo in enumerate(algos):
+        print(f"\n\n\n================ Testing sections with the algo {algo.__name__} ================")
         if algo is None:
             continue
         for i in range(3):
-            print(f"\n\n--- Testing {sections[i][0]} section with p={sections[i][1]} ---")
+            print(f"\n--- Testing {sections[i][0]} section with p={sections[i][1]} ---")
             for G in graphs[i]:
-                testSection(algo, G)
-        """
-        print(f"Starting the test for algorithm {algo.__name__}...")
-        print(f"Easy section. ")
-        tt = get_time()
-        for G in graphs[0]:
-            for g in G:
-                print(f"Testing graph with {len(g.nodes())} nodes and {len(g.edges())} edges...")
-                t = get_time()
-                algo(g)
-                f = get_calctime(t)
-                results[0].append((len(g.nodes()), len(g.edges()), f))
-        ft = get_calctime(t)
-        results[0].append(("Total", "", ft))
-        print(f"Finished in {ft} seconds!")
-        
-        
-        print(f"Medium section. It has graphs with p=0.5 with size ranging from {m} to {n}, with the size increment of {increment}, which makes {(n - m) // increment} graphs...")
-        t = get_time()
-        for g in graphs[1]:
-            algo(g)
-        f = get_calctime(t)
-        print(f"Finished in {f} seconds!")
-        print(f"Hard section. It has graphs with p=0.8 with size ranging from {m} to {n}, with the size increment of {increment}, which makes {(n - m) // increment} graphs...")
-        t = get_time()
-        for g in graphs[2]:
-            algo(g)
-        f = get_calctime(t)
-        print(f"Finished in {f} seconds!")
-        """
+                results[algonum].append(testSection(algo, G))
+
+    return results
+
+
+
+def printResultsByAlgo(results):
+    for result in results:
+        # Each algorithm and their results
+        print(f"\n\nAlgorithm: {result[0]}")
+        for algores in result[1]:
+            print(f"Nodes: {algores[0]}, Edges: {algores[1]}, Time: {algores[2]}, Result size: {len(algores[3])}")
+
+def printResultsByTest(results):
+    length = len(results[0]) - 1
+    for i in range(length):
+        print("\n\n==========================")
+        for algo in results:
+            print(f"Algorithm: {algo[0]}")
+            print(f"Nodes: {algo[1][i][0]}, Edges: {algo[1][i][1]}, Time: {algo[1][i][2]}, Result size: {len(algo[1][i][3])}")
+
     
 
 if __name__ == "__main__":
-    stressTest(branching)
+    # NOTE: EDGES MAKE A BIG JUMP AT EACH GRAPH, ALMOST DOUBLING. IT INCREASES REALLY QUICKLY
+    # WE MIGHT NEED A WAY TO SAVE DATA, LIKE GRAPHS OR RESULTS
+    # AND WE DEFINITELY NEED THE PLOTS
+    algos = [algo_glouton, algo_couplage, branching]
+    results = stressTest(algos)
+    for result in results:
+        for res in result:
+            print(res)
+    printResultsByAlgo(results)
+    printResultsByTest(results)
