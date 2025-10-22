@@ -2,6 +2,7 @@ from functions import random_graph
 from calctemps import get_time, get_calctime
 from math import sqrt
 from typing import Any, Callable, List, Optional, Tuple
+from plotting import makePlotForMoyennes
 
 from functions import branching, algo_couplage, algo_glouton
 
@@ -137,7 +138,7 @@ def specificTestMoyenne(results):
                 continue
             partie_list= [resultat[2] for resultat in algores]
             pm = sum(partie_list) / len(partie_list)
-            res[i].append(pm)
+            res[i].append([algores[0][0], pm])
                 
             
     return res
@@ -169,7 +170,7 @@ def testLevels(algos: List[Callable[[Any], Any]]) -> None:
     #printResultsByTest(results_leveled)
 
 def testSpecifics(algos: List[Callable[[Any], Any]]) -> None:
-    results = specificTest(algos, 20)
+    results = specificTest(algos, 14)
     for result in results:
         for res in result:
             print(res)
@@ -177,6 +178,10 @@ def testSpecifics(algos: List[Callable[[Any], Any]]) -> None:
     print("Printing moyennes")
     for moyenne in moyennes:
         print(moyenne)
+    
+    # show plot
+    for moyenne in moyennes:
+        makePlotForMoyennes(moyenne)
 
 
 if __name__ == "__main__":
