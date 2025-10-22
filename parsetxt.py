@@ -1,13 +1,20 @@
 
+from pathlib import Path
+from typing import List
 
-def readFile(filename):
+
+def readFile(filename: str) -> List[str]:
+    p = Path("graphs") / filename
     try:
-        file = open(filename, "r")
-        lines = file.readlines()
-        return lines
-    except:
-        print("Erreur pendant lecture de fichier")
-        raise FileNotFoundError
+        with p.open("r", encoding="utf-8") as f:
+            return f.readlines()
+    except FileNotFoundError:
+        print("Erreur pendant lecture de fichier: file not found", p)
+        raise
+    except Exception as e:
+        # Re-raise as FileNotFoundError for compatibility with existing callers
+        print(f"Erreur pendant lecture de fichier: {e}")
+        raise FileNotFoundError from e
 
 def extractProps(lines):
     nbsommets = 0

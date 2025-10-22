@@ -2,7 +2,8 @@ from functions import random_graph
 from calctemps import get_time, get_calctime
 from math import sqrt
 from typing import Any, Callable, List, Optional, Tuple
-from plotting import makePlotForMoyennes
+from plotting import makePlotForMoyennes, makePlotForMoyennesNFixed
+from savegraph import saveGraphToFile
 
 from functions import branching, algo_couplage, algo_glouton
 
@@ -100,9 +101,43 @@ def stressTest(algos: List[Optional[Callable[[Any], Any]]], m: int = 5, n: int =
 
     return results
 
-def specificTest(algos: List[Optional[Callable[[Any], Any]]], n: int = 20, p: Optional[float] = None) -> None:
+
+def nFixedTest(algos: List[Optional[Callable[[Any], Any]]], n: int = 20) -> None:
     """
-    Tests for Nmax/10 etc
+    Tests for variant p.
+    Applies the algos on those graphs, 10 for each class.
+    """
+    
+    graphs = []
+    index = 0
+    for p in range(10):
+        graphs.append([])
+        for _ in range(10): #  par class
+            graphs[index].append(random_graph(n, p * 0.1))
+        index += 1
+
+    """
+    index = 0
+    for graph in graphs:
+        index += 1
+        saveGraphToFile(graph[0], f"nFixedTest_{str(index).zfill(3)}_{len(graph[0].nodes())}_{len(graph[0].edges())}.txt")
+    """
+    
+    results = [[f"{x.__name__}"] for x in algos]
+    print(f"Each section have graphs having size {n}, with p ranging from 0.1 to 0.9, on 10 classes with 10 graphs each...")
+    for algonum, algo in enumerate(algos):
+        print(f"\n\n\n================ Testing sections with the algo {algo.__name__} ================")
+        if algo is None:
+            continue
+        for G in graphs:
+            results[algonum].append(testSection(algo, G))
+    
+    return results
+
+def pFixedTest(algos: List[Optional[Callable[[Any], Any]]], n: int = 20, p: Optional[float] = None) -> None:
+    """
+    Tests for Nmax/10 etc. for given p.
+    Applies the algos on those graphs, 10 for each class.
     """
     if p == None:
         p = 1/sqrt(n)
@@ -115,8 +150,15 @@ def specificTest(algos: List[Optional[Callable[[Any], Any]]], n: int = 20, p: Op
             graphs[index].append(random_graph(i, p))
         index += 1
     
+    """
+    index = 0
+    for graph in graphs:
+        index += 1
+        saveGraphToFile(graph[0], f"pFixedTest_{str(index).zfill(3)}_{len(graph[0].nodes())}_{len(graph[0].edges())}.txt")
+    """
+    
     results = [[f"{x.__name__}"] for x in algos]
-    print(f"Each section have graphs having size ranging from {m} to {n}, with the size increment of {m}, which makes 10 graphs...")
+    print(f"Each section have graphs having size ranging from {m} to {n}, with the size increment of {m}, on 10 classes with 10 graphs each...")
     for algonum, algo in enumerate(algos):
         print(f"\n\n\n================ Testing sections with the algo {algo.__name__} ================")
         if algo is None:
@@ -126,7 +168,29 @@ def specificTest(algos: List[Optional[Callable[[Any], Any]]], n: int = 20, p: Op
     
     return results
     
-def specificTestMoyenne(results):
+def FixedNTestMoyenne(results):
+    # Tests faites, mtn il faut avoir les moyennes
+    
+    res = []
+        
+    for i, algo in enumerate(results):
+        # start each algorithm entry with its name
+        res.append([algo[0]])
+        # iterate over probability-class results (skip the name at index 0)
+        for j, class_results in enumerate(algo[1:]):
+            if not class_results:
+                # if no data for this class, append zero average
+                res[i].append([j * 0.1, 0.0])
+                continue
+            partie_list = [resultat[2] for resultat in class_results]
+            pm = sum(partie_list) / len(partie_list)
+            # j corresponds to the class index (0 -> p=0.0, 1 -> p=0.1, ...)
+            res[i].append([j * 0.1, pm])
+                
+            
+    return res
+
+def FixedPTestMoyenne(results):
     # Tests faites, mtn il faut avoir les moyennes
     
     res = []
@@ -152,16 +216,11 @@ def printResultsByAlgoAndLevel(results: List[List[Any]]) -> None:
             for res in result[l + 1]:
                 print(f"Nodes: {res[0]}, Edges: {res[1]}, Time: {res[2]}, Result size: {len(res[3])}")
 
-def printResultsByTestAndLevel(results: List[List[Any]]) -> None:
-    length = len(results[0]) - 1
-    for i in range(length):
-        print("\n\n==========================")
-        for algo in results:
-            print(f"Algorithm: {algo[0]}")
-            print(f"Nodes: {algo[1][i][0]}, Edges: {algo[1][i][1]}, Time: {algo[1][i][2]}, Result size: {len(algo[1][i][3])}")
-
-
 def testLevels(algos: List[Callable[[Any], Any]]) -> None:
+    """
+    Applies the stressTest to the given algos, 
+    then prints them using printResultsByAlgoAndLevel.
+    """
     results_leveled = stressTest(algos)
     for result in results_leveled:
         for res in result:
@@ -169,12 +228,12 @@ def testLevels(algos: List[Callable[[Any], Any]]) -> None:
     printResultsByAlgoAndLevel(results_leveled)
     #printResultsByTest(results_leveled)
 
-def testSpecifics(algos: List[Callable[[Any], Any]]) -> None:
-    results = specificTest(algos, 14)
+def testFixedP(algos: List[Callable[[Any], Any]]) -> None:
+    results = pFixedTest(algos, 14)
     for result in results:
         for res in result:
             print(res)
-    moyennes = specificTestMoyenne(results)
+    moyennes = FixedPTestMoyenne(results)
     print("Printing moyennes")
     for moyenne in moyennes:
         print(moyenne)
@@ -183,6 +242,21 @@ def testSpecifics(algos: List[Callable[[Any], Any]]) -> None:
     for moyenne in moyennes:
         makePlotForMoyennes(moyenne)
 
+def testFixedN(algos: List[Callable[[Any], Any]]) -> None:
+    results = nFixedTest(algos, 14)
+    for result in results:
+        for res in result:
+            print(res)
+    moyennes = FixedNTestMoyenne(results)
+    print("Printing moyennes")
+    for moyenne in moyennes:
+        print(moyenne)
+    
+    # show plot
+    for moyenne in moyennes:
+        makePlotForMoyennesNFixed(moyenne)
+    
+
 
 if __name__ == "__main__":
     # NOTE: EDGES MAKE A BIG JUMP AT EACH GRAPH, ALMOST DOUBLING. IT INCREASES REALLY QUICKLY
@@ -190,4 +264,5 @@ if __name__ == "__main__":
     # AND WE DEFINITELY NEED THE PLOTS
     algos = [algo_glouton, algo_couplage, branching]
     #testLevels(algos)
-    testSpecifics(algos)
+    testFixedP(algos)
+    testFixedN(algos)
