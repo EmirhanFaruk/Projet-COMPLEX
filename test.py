@@ -1,5 +1,6 @@
 from functions import random_graph
 from calctemps import get_time, get_calctime
+from math import sqrt
 
 from functions import branching, algo_couplage, algo_glouton
 
@@ -28,6 +29,10 @@ def makeStressTestGraphBySize(m, n, increment):
     return graphs
 
 def testSection(algo, graphs):
+    """
+    Tests the graphs with the given algorithm. returns the results including:
+    [node number, edge number, time it took to execute, the result]
+    """
     results = []
     print(f"Starting the test for algorithm {algo.__name__}...")
     for G in graphs:
@@ -57,16 +62,37 @@ def stressTest(algos, m=5, n=20, increment=5):
 
     return results
 
+def specificTest(algos, n = 20, p=None):
+    """
+    Tests for Nmax/10 etc
+    """
+    if p == None:
+        p = 1/sqrt(n)
+    m = n//10
+    graphs = makeTestGraphBySize(m, n, p)
+    
+    results = [[f"{x.__name__}"] for x in algos]
+    print(f"Each section have graphs having size ranging from {m} to {n}, with the size increment of {m}, which makes 10 graphs...")
+    for algonum, algo in enumerate(algos):
+        print(f"\n\n\n================ Testing sections with the algo {algo.__name__} ================")
+        if algo is None:
+            continue
+        print(f"\n--- Testing with p={p} ---")
+        for G in graphs:
+            results[algonum].append(testSection(algo, G))
+    
+    
 
-
-def printResultsByAlgo(results):
+            
+def printResultsByAlgoAndLevel(results):
     for result in results:
-        # Each algorithm and their results
         print(f"\n\nAlgorithm: {result[0]}")
-        for algores in result[1]:
-            print(f"Nodes: {algores[0]}, Edges: {algores[1]}, Time: {algores[2]}, Result size: {len(algores[3])}")
+        for l, level in enumerate(["easy", "medium", "hard"]):
+            print(f"Level {level}")
+            for res in result[l + 1]:
+                print(f"Nodes: {res[0]}, Edges: {res[1]}, Time: {res[2]}, Result size: {len(res[3])}")
 
-def printResultsByTest(results):
+def printResultsByTestAndLevel(results):
     length = len(results[0]) - 1
     for i in range(length):
         print("\n\n==========================")
@@ -74,16 +100,20 @@ def printResultsByTest(results):
             print(f"Algorithm: {algo[0]}")
             print(f"Nodes: {algo[1][i][0]}, Edges: {algo[1][i][1]}, Time: {algo[1][i][2]}, Result size: {len(algo[1][i][3])}")
 
-    
+
+def testLevels(algos):
+    results_leveled = stressTest(algos)
+    for result in results_leveled:
+        for res in result:
+            print(res)
+    printResultsByAlgoAndLevel(results_leveled)
+    #printResultsByTest(results_leveled)
+
+def testSpecifics(algos):
 
 if __name__ == "__main__":
     # NOTE: EDGES MAKE A BIG JUMP AT EACH GRAPH, ALMOST DOUBLING. IT INCREASES REALLY QUICKLY
     # WE MIGHT NEED A WAY TO SAVE DATA, LIKE GRAPHS OR RESULTS
     # AND WE DEFINITELY NEED THE PLOTS
     algos = [algo_glouton, algo_couplage, branching]
-    results = stressTest(algos)
-    for result in results:
-        for res in result:
-            print(res)
-    printResultsByAlgo(results)
-    printResultsByTest(results)
+    #testLevels(algos)

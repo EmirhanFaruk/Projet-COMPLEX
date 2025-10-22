@@ -115,6 +115,28 @@ def branching(G):
                 
     return C
 
+def branching_minmax(G):
+    C = [] # le resultat
+    pile = [(-1, G.copy(), [])] # le pile
+    if len(G.edges()) == 0:
+        return []
+    while pile != []:
+        courant = pile.pop()
+        (_, Hc, solc) = courant
+        if len(Hc.edges()) == 0:
+            if C == []:
+                C = solc.copy()
+            else:
+                if len(C) > len(solc):
+                    C = solc.copy()
+        else:
+            arete = list(Hc.edges())[0]
+            u, v = arete
+            pile.append((u, remove_node_copy(Hc, u), solc + [u]))
+            pile.append((v, remove_node_copy(Hc, v), solc + [v]))
+                
+    return C
+
 
 if __name__ == "__main__":
     H = parseTxt("exemple.txt")
