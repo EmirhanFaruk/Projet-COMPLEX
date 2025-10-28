@@ -8,6 +8,10 @@ from debug import sprint, DEBUG
 from functions import branching, algo_couplage, algo_glouton
 
 
+from math import sqrt
+
+
+
 def makeTestGraphBySize(m: int, n: int, p: float, increment: int) -> List[Any]:
     """
     Make a list of graphs with probability of p and size from m to n with increment(for the size) for 10 each.
@@ -347,7 +351,7 @@ def stressTestMoyenne(results):
         """
         
         moyennes = [[[] for _ in range(len(algo_data[1][0]))] for _ in range(3)]  # Easy, Medium, Hard
-        print(len(moyennes))
+        sprint(len(moyennes))
         """
         moyennes:
         [
@@ -368,10 +372,10 @@ def stressTestMoyenne(results):
             ]
         ]
         """
-        print("================================")
-        print(f"Sections of algo_data: {len(algo_data[1:])}")
+        sprint("================================")
+        sprint(f"Sections of algo_data: {len(algo_data[1:])}")
         for i, section in enumerate(algo_data[1:]):
-            print("\n\n", i, section)
+            sprint(["\n\n", i, section])
         for size_index, res_by_size_list_list in enumerate(algo_data[1:]):
             """
             res_by_size_list:
@@ -380,13 +384,13 @@ def stressTestMoyenne(results):
                 [(10, 18, 0.00234, res_obj) ... x10], ... x (n-m)/increment],
             ]
             """
-            print("================================")
-            print(size_index, res_by_size_list_list)
-            print(len(moyennes))
+            sprint("================================")
+            sprint([size_index, res_by_size_list_list])
+            sprint(len(moyennes))
             moyennes[size_index] = ([(l[0][0], getAvgTime(l)) for l in res_by_size_list_list])
-            print("--------------------------------")
-            print(moyennes)
-            print("--------------------------------")
+            sprint("--------------------------------")
+            sprint(moyennes)
+            sprint("--------------------------------")
 
         averaged_algo.append(moyennes)
         res.append(averaged_algo)
@@ -415,10 +419,10 @@ def stressTestMoyenne(results):
         ],
         ...
     """
-    print("Final averaged results:")
-    print(res)
+    sprint("Final averaged results:")
+    sprint(res)
     for r in res:
-        print(r)
+        sprint(r)
     return res
 
 
@@ -476,7 +480,7 @@ def testLevels(algos: List[Optional[Callable[[Any], Any]]], m: int = 5, n: int =
     #refined_results = leveledResultsGroupedBySize(results_leveled)
     sprint("Printing moyennes for stress test...")
     for moyenne in refined_results:
-        print("===============================")
+        sprint("===============================")
         for m in moyenne:
             sprint(m)
     
@@ -486,13 +490,13 @@ def testLevels(algos: List[Optional[Callable[[Any], Any]]], m: int = 5, n: int =
                 
     
 
-def testFixedP(algos: List[Callable[[Any], Any]]) -> None:
-    results = pFixedTest(algos, 14)
+def testFixedP(algos: List[Callable[[Any], Any]], n=14) -> None:
+    results = pFixedTest(algos, n)
     for result in results:
         for res in result:
             sprint(res)
     moyennes = FixedPTestMoyenne(results)
-    print("Printing moyennes")
+    sprint("Printing moyennes")
     for moyenne in moyennes:
         sprint(moyenne)
     
@@ -500,8 +504,8 @@ def testFixedP(algos: List[Callable[[Any], Any]]) -> None:
     for moyenne in moyennes:
         makePlotForMoyennes(moyenne)
 
-def testFixedN(algos: List[Callable[[Any], Any]]) -> None:
-    results = nFixedTest(algos, 14)
+def testFixedN(algos: List[Callable[[Any], Any]], n=14) -> None:
+    results = nFixedTest(algos, n)
     for result in results:
         for res in result:
             sprint(res)
@@ -512,7 +516,7 @@ def testFixedN(algos: List[Callable[[Any], Any]]) -> None:
     # show plot
     for moyenne in moyennes:
         makePlotForMoyennesNFixed(moyenne)
-    
+        
 
 
 if __name__ == "__main__":
